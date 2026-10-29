@@ -15,6 +15,7 @@ static cnd_t cnd_state_changed;
 struct Worker_state {
   char *label;
   int state;
+  int (*worker)(void *);
 };
 
 static void worker_state_set(struct Worker_state *w, int newstate) {
@@ -45,6 +46,7 @@ static int capslock_worker(void *arg) {
 }
 
 static int run_ui(void *arg) {
+  (void) arg;
   run_overlay();
   return 0;
 }
@@ -97,23 +99,28 @@ int main() {
   cnd_init(&cnd_state_changed);
 
   struct Worker_state states[WORKERS_N] = {
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0},
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0, .worker = capslock_worker},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0, .worker = layout_worker},
   };
 
-  thrd_t capslock_worker_thrd;
-  thrd_create(&capslock_worker_thrd, capslock_worker, &states[0]);
+  // make space for state_reader and ui threads
+  thrd_t thrds[WORKERS_N + 2];
 
-  thrd_t layout_worker_thrd;
-  thrd_create(&layout_worker_thrd, layout_worker, &states[1]);
+  for (size_t i = 0; i < WORKERS_N; ++i) {
+    thrd_create(&thrds[i], states[i].worker, &states[i]);
+  }
 
-  thrd_t state_reader_thrd;
-  thrd_create(&state_reader_thrd, state_reader, &states);
+  thrd_create(&thrds[WORKERS_N + 0], state_reader, &states);
+  thrd_create(&thrds[WORKERS_N + 1], run_ui, NULL);
 
-  thrd_t ui_thrd;
-  thrd_create(&ui_thrd, run_ui, NULL);
+  int res = 0;
 
-  thrd_join(layout_worker_thrd, NULL);
+  for (size_t i = 0; i < WORKERS_N+2; ++i) {
+    thrd_join(thrds[i], &res);
+    if (res)
+      printf("error in thrd #%zu: %d", i, res);
+  }
+
 
   mtx_destroy(&mtx_state);
   cnd_destroy(&cnd_state_changed);
