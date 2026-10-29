@@ -23,7 +23,7 @@ static int get_current_layout(int *layout) {
   }
 
 bail:
-  fclose(f);
+  pclose(f);
   return res;
 }
 
