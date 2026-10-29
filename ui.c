@@ -134,7 +134,20 @@ static void reconcile_monitors(void) {
   }
 }
 
+static void on_monitors_changed(GListModel *monitors, guint position,
+                                guint removed, guint added,
+                                gpointer user_data) {
+  reconcile_monitors();
+}
+
 static void on_activate(GtkApplication *application, gpointer user_data) {
+  GdkDisplay *display = gdk_display_get_default();
+  if (display) {
+    GListModel *monitors = gdk_display_get_monitors(display);
+    g_signal_connect(monitors, "items-changed",
+                     G_CALLBACK(on_monitors_changed), NULL);
+  }
+
   // Register "toggle" (no argument)
   GSimpleAction *a_toggle = g_simple_action_new("toggle", NULL);
   g_signal_connect(a_toggle, "activate", G_CALLBACK(on_toggle_action), NULL);
