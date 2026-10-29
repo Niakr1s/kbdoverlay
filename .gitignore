@@ -2,3 +2,4 @@
 /capslock_watcher
 /ui
 *.o
+/compile_commands.json
