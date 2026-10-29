@@ -21,4 +21,5 @@ int watch_layout(layout_cb cb, void *arg) {
       cb(layout, arg);
     }
   }
+  fclose(f);
 }
