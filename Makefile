@@ -1,15 +1,15 @@
 # Simple Makefile for kbdoverlay
 CC      := cc
-CFLAGS  := -Wall -Wextra -O2
+CFLAGS  := -Wall -Wextra -O2 -levdev
 TARGET  := kbdoverlay
-SRC     := main.c
+SRC     := main.c layout_watcher.c capslock_watcher.c
 
 .PHONY: all clean run install uninstall
 
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $^
 
 run: $(TARGET)
 	./$(TARGET)
