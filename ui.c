@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <cairo.h>
 #include <gio/gio.h>
 #include <gtk/gtk.h>
