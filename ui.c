@@ -8,6 +8,11 @@
 static GtkApplication *app;
 static GList *overlay_windows = NULL;
 
+// overlay state
+static gboolean overlay_should_be_visible = FALSE;
+static char *overlay_current_markup = NULL;
+
+
 // ----------------------------------------------------------------
 // click-through
 static void on_realize(GtkWidget *widget, gpointer data) {
@@ -50,27 +55,35 @@ static GtkWidget *create_overlay_for_monitor(GdkMonitor *monitor) {
 
   g_signal_connect(window, "realize", G_CALLBACK(on_realize), NULL);
 
-  gtk_window_present(GTK_WINDOW(window));
-  gtk_widget_set_visible(window, FALSE);
+  if (overlay_current_markup)
+    gtk_label_set_markup(GTK_LABEL(label), overlay_current_markup);
+
+  if (overlay_should_be_visible)
+    gtk_window_present(GTK_WINDOW(window));
+  else
+    gtk_widget_set_visible(window, FALSE);
   return window;
 }
 
 // -------------------------------------------------------------- public helpers
-void overlay_set_text(const char *markup) {
-  for (GList *l = overlay_windows; l; l = l->next) {
-    GtkWidget *label = gtk_window_get_child(GTK_WINDOW(l->data));
-    if (label)
-      gtk_label_set_markup(GTK_LABEL(label), markup ? markup : "");
-  }
-}
-
 void overlay_set_visible(gboolean visible) {
+  overlay_should_be_visible = visible;
   for (GList *l = overlay_windows; l; l = l->next) {
     GtkWidget *win = GTK_WIDGET(l->data);
     if (visible)
       gtk_window_present(GTK_WINDOW(win));
     else
       gtk_widget_set_visible(win, FALSE);
+  }
+}
+
+void overlay_set_text(const char *markup) {
+  g_free(overlay_current_markup);
+  overlay_current_markup = g_strdup(markup ? markup : "");
+  for (GList *l = overlay_windows; l; l = l->next) {
+    GtkWidget *label = gtk_window_get_child(GTK_WINDOW(l->data));
+    if (label)
+      gtk_label_set_markup(GTK_LABEL(label), overlay_current_markup);
   }
 }
 
