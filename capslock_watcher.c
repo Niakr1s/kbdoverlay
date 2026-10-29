@@ -8,6 +8,7 @@
 #include <linux/input.h>
 #include <libevdev-1.0/libevdev/libevdev.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
 #include "capslock_watcher.h"
 
@@ -69,6 +70,15 @@ int watch_caps_lock(caps_cb cb, void *arg)
     if (fd < 0) {
         fprintf(stderr, "caps: no keyboard with Caps Lock LED found\n");
         return -1;
+    }
+
+    // ai suggested this
+    unsigned long leds = 0;
+    if (ioctl(fd, EVIOCGLED(sizeof(leds)), &leds) >= 0) {
+        int current_state = (leds & (1UL << LED_CAPSL)) ? 1 : 0;
+        cb(current_state, arg);
+    } else {
+        perror("ioctl EVIOCGLED");
     }
 
     struct input_event ev;
