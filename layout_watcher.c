@@ -34,18 +34,13 @@ int watch_layout(layout_cb cb, void *arg) {
   if (get_current_layout(&initial_layout) == 0)
     cb(initial_layout, arg);
 
-  char buf[256];
-
   while(true) {
-    errno = 0;
-    if (fgets(buf, 256, f) == NULL && errno != 0) {
-      perror(__func__);
-      return 1;
-    }
-
     int layout;
-    if (sscanf(buf, "Keyboard layout switched: %d", &layout) == 1) {
+    if (fscanf(f, " Keyboard layout switched: %d", &layout) == 1) {
       cb(layout, arg);
+    } else {
+      fscanf(f, "%*[^\n]");   // skip up to newline
+      fscanf(f, "%*c");       // consume the newline
     }
   }
   fclose(f);
