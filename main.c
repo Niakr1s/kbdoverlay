@@ -10,12 +10,14 @@
 #include "layout_watcher.h"
 #include "ui.h"
 
+#define GETENV_OR(name, fallback) (getenv(name) ? getenv(name) : (fallback))
+
 static mtx_t mtx_state;
 static cnd_t cnd_state_changed;
 
 struct Label_Style {
-  char *color; // "#FF5555"
-  char *font; // "Bold 30", "30"
+  char color[8]; // "#FF5555"
+  char font[16]; // "Bold 30", "30"
   bool strikethrough;
 };
 
@@ -133,19 +135,19 @@ void keyboard_state_default(enum KeyboardStateType type, struct KeyboardState *s
       state->type = KEYBOARD_STATE_CAPSLOCK;
       strcpy(state->label, "⇧");
       state->style = (struct Label_Style){
-          .color = "#FF5555",
-          .font = "Bold 30",
           .strikethrough = false,
       };
+      snprintf(state->style.color, 8, "%s", GETENV_OR("CAPSLOCK_COLOR", "#FF5555"));
+      snprintf(state->style.font, 16, "%s", GETENV_OR("CAPSLOCK_FONT", "Bold 30"));
       state->off_state = 0;
       break;
     case KEYBOARD_STATE_LAYOUT:
       state->type = KEYBOARD_STATE_LAYOUT;
       state->style = (struct Label_Style){
-          .color = "#FF5555",
-          .font = "Bold 30",
           .strikethrough = true,
       };
+      snprintf(state->style.color, 8, "%s", GETENV_OR("LAYOUT_COLOR", "#FF5555"));
+      snprintf(state->style.font, 16, "%s", GETENV_OR("LAYOUT_FONT", "Bold 30"));
       state->off_state = 0;
       break;
   }
