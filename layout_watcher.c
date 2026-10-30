@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 typedef void (*layout_cb)(int state, void *arg);
 
@@ -9,18 +8,17 @@ static int get_current_layout(int *layout) {
   FILE *f = popen("niri msg keyboard-layouts", "r");
   int res = 0;
 
-  char buf[32];
   errno = 0;
-  while (fgets(buf, 32, f) != NULL) {
-    if (fscanf(f, " * %d", layout) == 1) {
+  while (fscanf(f, " * %d", layout) != 1) {
+    if (feof(f)) {
+      res = 1;
       goto bail;
     }
+    fscanf(f, "%*s[^\n]");
+    fscanf(f, "%*c");
   }
-  // we didn't found match
-  res = 1;
-  if (errno != 0) {
-    perror(__func__);
-  }
+  // we found match
+  res = 0;
 
 bail:
   pclose(f);
