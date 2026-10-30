@@ -18,13 +18,15 @@ struct Label_Style {
   bool strikethrough;
 };
 
-static void label_with_style(struct Label_Style style, const char *label, char *buf, size_t sz) {
-  snprintf(buf, sz, "<span foreground=\"%s\" font=\"%s\" strikethrough=\"%s\">%s</span>",
+/// Returns number of bytes printed
+static int snprint_label_styled(char *buf, size_t sz, struct Label_Style style, const char *label) {
+  return snprintf(buf, sz, "<span foreground=\"%s\" font=\"%s\" strikethrough=\"%s\">%s</span>",
            style.foreground_color, style.font, style.strikethrough ? "true" : "false", label);
 }
 
 struct Worker_state {
-  char label[128]; // 128 bytes
+  char label[8]; // 8 bytes will be enough
+  struct Label_Style style;
   int state; // current state
   int off_state; // indicates which state should be considered as "off"
 };
@@ -82,7 +84,7 @@ static void update_overlay(struct Worker_state *states) {
   for (size_t i = 0; i < WORKERS_N; ++i) {
     if (states[i].state != states[i].off_state) {
       should_show = true;
-      int len = snprintf(ptr, 256 - (ptr - buf), "%s ", states[i].label);
+      int len = snprint_label_styled(ptr, 256 - (ptr - buf), states[i].style, states[i].label);
       if (len != -1)
         ptr += len;
     }
@@ -111,21 +113,19 @@ int main() {
   mtx_init(&mtx_state, mtx_plain);
   cnd_init(&cnd_state_changed);
 
-  struct Worker_state capslock_state = {0};
   struct Label_Style capslock_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = false,
   };
-  label_with_style(capslock_style, "⇧", capslock_state.label, 128);
+  struct Worker_state capslock_state = {.label = "⇧", .style = capslock_style, .off_state = 0};
 
-  struct Worker_state layout_state = {0};
   struct Label_Style layout_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = true,
   };
-  label_with_style(layout_style, "EN", layout_state.label, 128);
+  struct Worker_state layout_state = {.label = "EN", .style = layout_style, .off_state = 0};
 
   struct Worker_state states[WORKERS_N] = {
     capslock_state,
