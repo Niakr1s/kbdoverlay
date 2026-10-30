@@ -15,8 +15,9 @@ static cnd_t cnd_state_changed;
 struct Worker_state {
   char *label;
   int state;
-  int (*worker)(void *);
 };
+
+typedef int (*Worker_fn) (void *);
 
 static void worker_state_set(struct Worker_state *w, int newstate) {
   mtx_lock(&mtx_state);
@@ -99,15 +100,20 @@ int main() {
   cnd_init(&cnd_state_changed);
 
   struct Worker_state states[WORKERS_N] = {
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0, .worker = capslock_worker},
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0, .worker = layout_worker},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0},
+  };
+
+  Worker_fn workers[WORKERS_N] = {
+    capslock_worker,
+    layout_worker,
   };
 
   // make space for state_reader and ui threads
   thrd_t thrds[WORKERS_N + 2];
 
   for (size_t i = 0; i < WORKERS_N; ++i) {
-    thrd_create(&thrds[i], states[i].worker, &states[i]);
+    thrd_create(&thrds[i], workers[i], &states[i]);
   }
 
   thrd_create(&thrds[WORKERS_N + 0], state_reader, &states);
