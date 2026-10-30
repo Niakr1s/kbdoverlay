@@ -48,6 +48,15 @@ static void worker_cb_impl(int state, void *arg) {
 
 static int layout_worker(void *arg) {
   printf("layout worker started\n");
+  struct Worker_state *state = arg;
+
+  // we need first 2 bytes + \0, so it's 3
+  if (get_layout_name(state->off_state, state->label, 3) != 0) {
+    fprintf(stderr, "couldn't aqquire layout label #%d, check layout number using 'niri msg keyboard-layouts'", state->off_state);
+    exit(EXIT_FAILURE);
+  } else {
+    printf("aquired default layout label: %s\n", state->label);
+  }
   watch_layout(worker_cb_impl, arg);
   return 0;
 }
@@ -127,7 +136,8 @@ int main() {
                .font = "Bold 30",
                .strikethrough = true,
   };
-  struct Worker_state layout_state = {.label = "EN", .style = layout_style, .off_state = 0};
+  // for layout it's label will be set inside worker
+  struct Worker_state layout_state = {.style = layout_style, .off_state = 0};
 
   struct Worker_state states[WORKERS_N] = {
     capslock_state,
