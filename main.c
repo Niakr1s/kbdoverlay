@@ -12,6 +12,17 @@
 static mtx_t mtx_state;
 static cnd_t cnd_state_changed;
 
+struct Label_Style {
+  char *foreground_color; // "#FF5555"
+  char *font; // "Bold 30", "30"
+  bool strikethrough;
+};
+
+static void label_with_style(struct Label_Style style, const char *label, char *buf, size_t sz) {
+  snprintf(buf, sz, "<span foreground=\"%s\" font=\"%s\" strikethrough=\"%s\">%s</span>",
+           style.foreground_color, style.font, style.strikethrough ? "true" : "false", label);
+}
+
 struct Worker_state {
   char *label;
   int state; // current state
@@ -100,9 +111,29 @@ int main() {
   mtx_init(&mtx_state, mtx_plain);
   cnd_init(&cnd_state_changed);
 
+  struct Label_Style capslock_style = {
+               .foreground_color = "#FF5555",
+               .font = "Bold 30",
+               .strikethrough = false,
+  };
+  char capslock_label[128];
+  label_with_style(capslock_style, "⇧", capslock_label, 128);
+
+  struct Label_Style layout_style = {
+               .foreground_color = "#FF5555",
+               .font = "Bold 30",
+               .strikethrough = true,
+  };
+  char layout_label[128];
+  label_with_style(layout_style, "EN", layout_label, 128);
+
   struct Worker_state states[WORKERS_N] = {
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0, .off_state = 0},
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0, .off_state = 0},
+      {.label = capslock_label,
+       .state = 0,
+       .off_state = 0},
+      {.label = layout_label,
+       .state = 0,
+       .off_state = 0},
   };
 
   Worker_fn workers[WORKERS_N] = {
