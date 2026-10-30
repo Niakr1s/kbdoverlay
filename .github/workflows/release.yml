@@ -20,13 +20,13 @@ jobs:
           pacman -S --noconfirm pkgconf gtk4 cairo libevdev gtk4-layer-shell
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build binary with make
         run: make
 
       - name: Upload binary to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ./kbdoverlay
           generate_release_notes: true
