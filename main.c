@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,13 @@ static int snprint_label_styled(char *buf, size_t sz, struct Label_Style style, 
            style.color, style.font, style.strikethrough ? "true" : "false", label);
 }
 
+enum KeyboardStateType {
+  KEYBOARD_STATE_CAPSLOCK,
+  KEYBOARD_STATE_LAYOUT,
+};
+
 struct KeyboardState {
+  enum KeyboardStateType type;
   char label[8]; // 8 bytes will be enough
   struct Label_Style style;
   int state; // current state
@@ -120,29 +127,37 @@ static int state_reader(void *arg) {
   return 0;
 }
 
+void keyboard_state_default(enum KeyboardStateType type, struct KeyboardState *state) {
+  switch (type) {
+    case KEYBOARD_STATE_CAPSLOCK:
+      state->type = KEYBOARD_STATE_CAPSLOCK;
+      strcpy(state->label, "⇧");
+      state->style = (struct Label_Style){
+          .color = "#FF5555",
+          .font = "Bold 30",
+          .strikethrough = false,
+      };
+      state->off_state = 0;
+      break;
+    case KEYBOARD_STATE_LAYOUT:
+      state->type = KEYBOARD_STATE_LAYOUT;
+      state->style = (struct Label_Style){
+          .color = "#FF5555",
+          .font = "Bold 30",
+          .strikethrough = true,
+      };
+      state->off_state = 0;
+      break;
+  }
+}
+
 int main() {
   mtx_init(&mtx_state, mtx_plain);
   cnd_init(&cnd_state_changed);
 
-  struct Label_Style capslock_style = {
-               .color = "#FF5555",
-               .font = "Bold 30",
-               .strikethrough = false,
-  };
-  struct KeyboardState capslock_state = {.label = "⇧", .style = capslock_style, .off_state = 0};
-
-  struct Label_Style layout_style = {
-               .color = "#FF5555",
-               .font = "Bold 30",
-               .strikethrough = true,
-  };
-  // for layout it's label will be set inside worker
-  struct KeyboardState layout_state = {.style = layout_style, .off_state = 0};
-
-  struct KeyboardState states[WORKERS_N] = {
-    capslock_state,
-    layout_state,
-  };
+  struct KeyboardState states[WORKERS_N] = {0};
+  keyboard_state_default(KEYBOARD_STATE_CAPSLOCK, &states[0]);
+  keyboard_state_default(KEYBOARD_STATE_LAYOUT, &states[1]);
 
   Worker_fn workers[WORKERS_N] = {
     capslock_worker,
