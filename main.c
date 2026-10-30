@@ -24,7 +24,7 @@ static int snprint_label_styled(char *buf, size_t sz, struct Label_Style style, 
            style.foreground_color, style.font, style.strikethrough ? "true" : "false", label);
 }
 
-struct Worker_state {
+struct KeyboardState {
   char label[8]; // 8 bytes will be enough
   struct Label_Style style;
   int state; // current state
@@ -33,7 +33,7 @@ struct Worker_state {
 
 typedef int (*Worker_fn) (void *);
 
-static void worker_state_set(struct Worker_state *w, int newstate) {
+static void keyboard_state_set(struct KeyboardState *w, int newstate) {
   mtx_lock(&mtx_state);
   w->state = newstate;
   cnd_signal(&cnd_state_changed);
@@ -41,14 +41,14 @@ static void worker_state_set(struct Worker_state *w, int newstate) {
 }
 
 static void worker_cb_impl(int state, void *arg) {
-  worker_state_set(arg, state);
+  keyboard_state_set(arg, state);
 }
 
 // layout worker
 
 static int layout_worker(void *arg) {
   printf("layout worker started\n");
-  struct Worker_state *state = arg;
+  struct KeyboardState *state = arg;
 
   // we need first 2 bytes + \0, so it's 3
   if (get_layout_name(state->off_state, state->label, 3) != 0) {
@@ -78,7 +78,7 @@ static int run_ui(void *arg) {
 // you should change it according to your workers count
 #define WORKERS_N 2
 
-static void print_states(struct Worker_state *states) {
+static void print_states(struct KeyboardState *states) {
   for (size_t i = 0; i < WORKERS_N; ++i) {
     printf("%s: %s; ", states[i].label, states[i].state == states[i].off_state ? "OFF" : "ON");
   }
@@ -86,7 +86,7 @@ static void print_states(struct Worker_state *states) {
   fflush(stdout);
 }
 
-static void update_overlay(struct Worker_state *states) {
+static void update_overlay(struct KeyboardState *states) {
   bool should_show = false;
 #define SZ 256
   char buf[SZ]; // this may not be enough
@@ -108,7 +108,7 @@ static void update_overlay(struct Worker_state *states) {
 }
 
 static int state_reader(void *arg) {
-  struct Worker_state *states = arg;
+  struct KeyboardState *states = arg;
   for (;;) {
     mtx_lock(&mtx_state);
     cnd_wait(&cnd_state_changed, &mtx_state);
@@ -129,7 +129,7 @@ int main() {
                .font = "Bold 30",
                .strikethrough = false,
   };
-  struct Worker_state capslock_state = {.label = "⇧", .style = capslock_style, .off_state = 0};
+  struct KeyboardState capslock_state = {.label = "⇧", .style = capslock_style, .off_state = 0};
 
   struct Label_Style layout_style = {
                .foreground_color = "#FF5555",
@@ -137,9 +137,9 @@ int main() {
                .strikethrough = true,
   };
   // for layout it's label will be set inside worker
-  struct Worker_state layout_state = {.style = layout_style, .off_state = 0};
+  struct KeyboardState layout_state = {.style = layout_style, .off_state = 0};
 
-  struct Worker_state states[WORKERS_N] = {
+  struct KeyboardState states[WORKERS_N] = {
     capslock_state,
     layout_state,
   };
