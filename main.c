@@ -14,7 +14,8 @@ static cnd_t cnd_state_changed;
 
 struct Worker_state {
   char *label;
-  int state;
+  int state; // current state
+  int off_state; // indicates which state should be considered as "off"
 };
 
 typedef int (*Worker_fn) (void *);
@@ -57,7 +58,7 @@ static int run_ui(void *arg) {
 
 static void print_states(struct Worker_state *states) {
   for (size_t i = 0; i < WORKERS_N; ++i) {
-    printf("%s: %d; ", states[i].label, states[i].state);
+    printf("%s: %s; ", states[i].label, states[i].state == states[i].off_state ? "OFF" : "ON");
   }
   printf("\n");
   fflush(stdout);
@@ -68,7 +69,7 @@ static void update_overlay(struct Worker_state *states) {
   char buf[256]; // this may not be enough
   char *ptr = buf;
   for (size_t i = 0; i < WORKERS_N; ++i) {
-    if (states[i].state != 0) {
+    if (states[i].state != states[i].off_state) {
       should_show = true;
       int len = snprintf(ptr, 256 - (ptr - buf), "%s ", states[i].label);
       if (len != -1)
@@ -100,8 +101,8 @@ int main() {
   cnd_init(&cnd_state_changed);
 
   struct Worker_state states[WORKERS_N] = {
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0},
-      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\">⇧</span>", .state = 0, .off_state = 0},
+      {.label = "<span foreground=\"#FF5555\" font=\"Bold 30\" strikethrough=\"true\">EN</span>", .state = 0, .off_state = 0},
   };
 
   Worker_fn workers[WORKERS_N] = {
