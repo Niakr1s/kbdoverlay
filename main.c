@@ -24,7 +24,7 @@ static void label_with_style(struct Label_Style style, const char *label, char *
 }
 
 struct Worker_state {
-  char *label;
+  char label[128]; // 128 bytes
   int state; // current state
   int off_state; // indicates which state should be considered as "off"
 };
@@ -111,27 +111,21 @@ int main() {
   mtx_init(&mtx_state, mtx_plain);
   cnd_init(&cnd_state_changed);
 
-  struct Worker_state capslock_state = {
-      .label = NULL, .state = 0, .off_state = 0};
+  struct Worker_state capslock_state = {0};
   struct Label_Style capslock_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = false,
   };
-  char capslock_label[128];
-  label_with_style(capslock_style, "⇧", capslock_label, 128);
-  capslock_state.label = capslock_label;
+  label_with_style(capslock_style, "⇧", capslock_state.label, 128);
 
-  struct Worker_state layout_state = {
-      .label = NULL, .state = 0, .off_state = 0};
+  struct Worker_state layout_state = {0};
   struct Label_Style layout_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = true,
   };
-  char layout_label[128];
-  label_with_style(layout_style, "EN", layout_label, 128);
-  layout_state.label = layout_label;
+  label_with_style(layout_style, "EN", layout_state.label, 128);
 
   struct Worker_state states[WORKERS_N] = {
     capslock_state,
