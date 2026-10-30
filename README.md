@@ -1,5 +1,14 @@
 # The program that shows current CAPSLOCK and LAYOUT state in a clickthrough overlay
 
+## Style configuration
+
+Style can be configured via env variables:
+
+- "CAPSLOCK_COLOR", default: "#FF5555"
+- "CAPSLOCK_FONT", default: "Bold 30"
+- "LAYOUT_COLOR", default: "#FF5555"
+- "LAYOUT_FONT", default: "Bold 30"
+
 ## Shown states
 
 ### Layout
@@ -15,9 +24,3 @@ so when user switches to any other layout - it shows crisscrossed ~~EN~~ text.
 
 It uses *libevdev* and some `/dev/input/event*` black magic.
 Your user must be in *input* group, or run it with sudo.
-
-## TODO
-
-- [ ] Take keyboard layout name from `niri msg keyboard-layouts`
-- [ ] Get format options from command line arguments
-- [ ] Get capslock symbol from command line arguments
