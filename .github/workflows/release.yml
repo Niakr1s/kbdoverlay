@@ -1,0 +1,26 @@
+name: Build and Release Binary
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags starting with v
+
+permissions:
+  contents: write # Required to create releases and upload assets
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build binary with make
+        run: make
+
+      - name: Upload binary to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./kbdoverlay # Replace with your actual binary path
+          # You can rename the asset here if needed:
+          # asset_name: mybinary-${{ github.ref_name }}-linux-amd64
