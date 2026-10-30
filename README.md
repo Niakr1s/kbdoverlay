@@ -1,6 +1,8 @@
 # The program that shows current CAPSLOCK and LAYOUT state in a clickthrough overlay
 
-## Style configuration
+## Configuration
+
+### Style
 
 Style can be configured via env variables:
 
@@ -8,6 +10,12 @@ Style can be configured via env variables:
 - "CAPSLOCK_FONT", default: "Bold 30"
 - "LAYOUT_COLOR", default: "#FF5555"
 - "LAYOUT_FONT", default: "Bold 30"
+
+### Default layout
+
+Since this app shows *not default layout* state, it is possible to set default state.
+To do this - aqquire the needed state number from `niri msg keyboard-layouts`
+and provide via `LAYOUT_DEFAULT=n` env variable, where `n` is your layout number.
 
 ## Shown states
 

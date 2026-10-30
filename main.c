@@ -148,7 +148,7 @@ void keyboard_state_default(enum KeyboardStateType type, struct KeyboardState *s
       };
       snprintf(state->style.color, 8, "%s", GETENV_OR("LAYOUT_COLOR", "#FF5555"));
       snprintf(state->style.font, 16, "%s", GETENV_OR("LAYOUT_FONT", "Bold 30"));
-      state->off_state = 0;
+      state->off_state = atoi(GETENV_OR("LAYOUT_DEFAULT", "0"));
       break;
   }
 }
