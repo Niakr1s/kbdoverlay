@@ -8,6 +8,8 @@ LDLIBS  := $(PKG_LDLIBS)
 TARGET  := kbdoverlay
 SRC     := main.c layout_watcher.c capslock_watcher.c ui.c
 OBJ     := $(SRC:.c=.o)
+PREFIX  ?= /usr/local
+BINDIR  ?= $(PREFIX)/bin
 
 .PHONY: all clean run install uninstall
 
@@ -23,10 +25,11 @@ run: $(TARGET)
 	./$(TARGET)
 
 install: $(TARGET)
-	install -m 0755 $(TARGET) /usr/local/bin
+	install -d -m 0755 $(DESTDIR)$(BINDIR)
+	install -m 0755 $(TARGET) $(DESTDIR)$(BINDIR)
 
 uninstall:
-	rm -f /usr/local/bin/$(TARGET)
+	rm -f $(DESTDIR)$(BINDIR)/$(TARGET)
 
 clean:
 	rm -f $(TARGET)
