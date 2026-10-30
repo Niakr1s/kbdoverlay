@@ -79,12 +79,13 @@ static void print_states(struct Worker_state *states) {
 
 static void update_overlay(struct Worker_state *states) {
   bool should_show = false;
-  char buf[256]; // this may not be enough
+#define SZ 256
+  char buf[SZ]; // this may not be enough
   char *ptr = buf;
   for (size_t i = 0; i < WORKERS_N; ++i) {
     if (states[i].state != states[i].off_state) {
       should_show = true;
-      int len = snprint_label_styled(ptr, 256 - (ptr - buf), states[i].style, states[i].label);
+      int len = snprint_label_styled(ptr, SZ - (ptr - buf), states[i].style, states[i].label);
       if (len != -1)
         ptr += len;
     }
@@ -94,6 +95,7 @@ static void update_overlay(struct Worker_state *states) {
     overlay_show_cli();
   else
     overlay_hide_cli();
+#undef SZ
 }
 
 static int state_reader(void *arg) {
