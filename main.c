@@ -13,7 +13,7 @@ static mtx_t mtx_state;
 static cnd_t cnd_state_changed;
 
 struct Label_Style {
-  char *foreground_color; // "#FF5555"
+  char *color; // "#FF5555"
   char *font; // "Bold 30", "30"
   bool strikethrough;
 };
@@ -21,7 +21,7 @@ struct Label_Style {
 /// Returns number of bytes printed
 static int snprint_label_styled(char *buf, size_t sz, struct Label_Style style, const char *label) {
   return snprintf(buf, sz, "<span foreground=\"%s\" font=\"%s\" strikethrough=\"%s\">%s</span>",
-           style.foreground_color, style.font, style.strikethrough ? "true" : "false", label);
+           style.color, style.font, style.strikethrough ? "true" : "false", label);
 }
 
 struct KeyboardState {
@@ -125,14 +125,14 @@ int main() {
   cnd_init(&cnd_state_changed);
 
   struct Label_Style capslock_style = {
-               .foreground_color = "#FF5555",
+               .color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = false,
   };
   struct KeyboardState capslock_state = {.label = "⇧", .style = capslock_style, .off_state = 0};
 
   struct Label_Style layout_style = {
-               .foreground_color = "#FF5555",
+               .color = "#FF5555",
                .font = "Bold 30",
                .strikethrough = true,
   };
