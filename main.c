@@ -111,6 +111,8 @@ int main() {
   mtx_init(&mtx_state, mtx_plain);
   cnd_init(&cnd_state_changed);
 
+  struct Worker_state capslock_state = {
+      .label = NULL, .state = 0, .off_state = 0};
   struct Label_Style capslock_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
@@ -118,7 +120,10 @@ int main() {
   };
   char capslock_label[128];
   label_with_style(capslock_style, "⇧", capslock_label, 128);
+  capslock_state.label = capslock_label;
 
+  struct Worker_state layout_state = {
+      .label = NULL, .state = 0, .off_state = 0};
   struct Label_Style layout_style = {
                .foreground_color = "#FF5555",
                .font = "Bold 30",
@@ -126,14 +131,11 @@ int main() {
   };
   char layout_label[128];
   label_with_style(layout_style, "EN", layout_label, 128);
+  layout_state.label = layout_label;
 
   struct Worker_state states[WORKERS_N] = {
-      {.label = capslock_label,
-       .state = 0,
-       .off_state = 0},
-      {.label = layout_label,
-       .state = 0,
-       .off_state = 0},
+    capslock_state,
+    layout_state,
   };
 
   Worker_fn workers[WORKERS_N] = {
