@@ -1,5 +1,14 @@
 # The program that shows current CAPSLOCK and LAYOUT state in a clickthrough overlay
 
+## Dependencies
+
+### Archlinux
+
+```bash
+pacman -S --noconfirm pkgconf gtk4 cairo libevdev gtk4-layer-shell
+
+```
+
 ## Configuration
 
 ### Style
