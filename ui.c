@@ -5,6 +5,8 @@
 #include <gtk/gtk.h>
 #include <gtk4-layer-shell/gtk4-layer-shell.h>
 
+const char *APP_ID = "my.kbd.overlay";
+
 static GtkApplication *app;
 static GList *overlay_windows = NULL;
 
@@ -189,41 +191,28 @@ static void on_activate(GtkApplication *application, gpointer user_data) {
   reconcile_monitors();
 }
 
-const char *APP_ID = "my.kbd.overlay";
-
-static void run_gapplication(const char *action, const char *arg) {
-  char cmd[4096];
-
-  if (arg) {
-    // Wrap the argument in GVariant string syntax: "..."
-    // and escape any embedded double quotes for the shell.
-    char escaped[2048];
-    size_t j = 0;
-    for (size_t i = 0; arg[i] && j < sizeof(escaped) - 2; i++) {
-      if (arg[i] == '"' || arg[i] == '\\')
-        escaped[j++] = '\\';
-      escaped[j++] = arg[i];
-    }
-    escaped[j] = '\0';
-
-    snprintf(cmd, sizeof(cmd),
-             "gapplication action %s %s '\"<span>%s</span>\"'", APP_ID, action,
-             escaped);
-  } else {
-    snprintf(cmd, sizeof(cmd), "gapplication action %s %s", APP_ID, action);
-  }
-
-  int rc = system(cmd);
-  if (rc != 0)
-    fprintf(stderr, "overlay_cli: command failed: %s\n", cmd);
+static int overlay_show_cb(void *arg) {
+  overlay_set_visible(TRUE);
+  return 0;
+}
+void overlay_show_cli(void) {
+  g_idle_add(overlay_show_cb, NULL);
 }
 
-void overlay_toggle_cli(void) { run_gapplication("toggle", NULL); }
-void overlay_show_cli(void) { run_gapplication("show", NULL); }
-void overlay_hide_cli(void) { run_gapplication("hide", NULL); }
+static int overlay_hide_cb(void *arg) {
+  overlay_set_visible(FALSE);
+  return 0;
+}
+void overlay_hide_cli(void) {
+  g_idle_add(overlay_hide_cb, NULL);
+}
 
+static int overlay_set_text_cb(void *arg) {
+  overlay_set_text(arg ? arg : "");
+  return 0;
+}
 void overlay_set_text_cli(const char *text) {
-  run_gapplication("set-text", text ? text : "");
+  g_idle_add(overlay_set_text_cb, (void *)text);
 }
 
 int run_overlay() {
